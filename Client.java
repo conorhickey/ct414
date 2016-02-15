@@ -14,91 +14,101 @@ public class Client{
             System.setSecurityManager(new SecurityManager());
         }
         try {
-            String name = "AssesServer";
+            String name = "ExamServer";
             Registry registry = LocateRegistry.getRegistry(args[0]);
             ExamServer assessServ = (ExamServer) registry.lookup(name);
             Scanner scan = new Scanner(System.in);
             String password = args[2], choice = "";
             int studID = Integer.parseInt(args[1]), token = assessServ.login(studID, password);
-            System.out.print("Welcome student ");
-            System.out.print(studID);
-            System.out.print("\n");
-            System.out.println("Note: At any stage type the word 'exit' and press the return key to log off");
+            System.out.print("Welcome to Assignment Completer.\n");
+
             while (true){
-            	System.out.println("Open assessments:");
-            	//May need to manually print this list. On compile: yep!!
-            	System.out.print(assessServ.getAvailableSummary(token, studID));
-            	System.out.println("Which assessment would you like to complete?(give course code)");
-            	//May need a stronger check than this one
-            	while (choice == ""){
-            		choice = scan.next();
-            		System.out.format("%s is not a valid input. Please type assessment course code or type 'exit' and hit return.\n", choice);
-            	}
-            	if (choice == "exit"){
+            	
+            	System.out.print("Available Assessments: "+ assessServ.getAvailableSummary(token, studID));
+				System.out.println("Enter 'exit' To End Program and Submit.");
+				
+            	System.out.println("Enter Assessment Number: ");
+            	
+            	choice = scan.next();
+            	
+           	 	if (new String("exit").equals(choice)){
             		break;
+           	 	}
+           	 	
+            	while (new String("").equals(choice)){
+            		System.out.format("%s :Invalid. Enter Assessment Number: ", choice);
+            		choice = scan.next();
             	}
-            	//May need to check that a user is still logged on at each of the 2 below stages
-            	Assessment test = assessServ.getAssessment(token, studID, choice);
-				test = runTest(test);
-            	assessServ.submitAssessment(token, studID, test);
+
+            	Assessment assignment = assessServ.getAssessment(token, studID, choice);
+				assignment  = Examination(assignment );
+            	assessServ.submitAssessment(token, studID, assignment );
             }
         }
         catch (Exception e) {
-            System.err.println("Warning: Exception");
+		System.err.println("Warning: Exception.");
+		e.printStackTrace();
+
         }
     }
     
-    private static Assessment runTest(Assessment exam){
-    	List<Question> Qs = exam.getQuestions(); 
-		List<Integer> openQs = new ArrayList<Integer>(Qs.size());
+    private static Assessment Examination(Assessment exam){
+    	List<Question> Questions = exam.getQuestions(); 
+		List<Integer> UnAnsweredQuestions = new ArrayList<Integer>(Questions.size());
     	Scanner scan = new Scanner(System.in);
-    	int choice = -2, ans, ind;
-    	System.out.println("Information on this Assessment:");
-    	System.out.print(exam.getInformation());
-    	for (int i = 1; i <= Qs.size(); i++){
-    		openQs.add(i-1,i);
+    	int choice = -2;
+		int answer; 
+		int ind;
+		Question temp;
+		
+		System.out.println("Enter 0 to exit assessment.");
+    	for (int i = 1; i <= Questions.size(); i++){
+    		UnAnsweredQuestions.add(i-1,i);
     	}
+    	
     	while (true){
-    		for (int i = 0; i < openQs.size(); i++){
-    			//May need to print questions and answers
-				//Need to access Lists below using iterators
-    			System.out.format("Question %d %s \n", openQs.get(i), Qs.get(openQs.get(i)));
+    		for( int j = 0; j< UnAnsweredQuestions.size(); j++){
+    		System.out.format("Question %d\n", UnAnsweredQuestions.get(j));
+    		temp = Questions.get(UnAnsweredQuestions.get(j));
+			System.out.format(temp.getQuestionDetail());
     		}
-    		System.out.println("Specify Question number that you want to answer or 0 to exit:");
+    		
+    		System.out.println("Enter Question Number:");
     		choice = Integer.parseInt(scan.next());
-    		while (choice < 0 && choice >= Qs.size()){
+    		while (choice < 0 || choice > Questions.size()){
+            		System.out.format("%d is not a valid input. Try again: \n", choice);
             		choice = Integer.parseInt(scan.next());
-            		System.out.format("%d is not a valid input. Please give question number or 0 to exit:\n", choice);
             }
             if (choice == 0){
             	break;
             }
 			try{
-				Question curQuestion = exam.getQuestion(choice-1);
-				System.out.println(curQuestion.getQuestionDetail());
-				String[] posAnswers = curQuestion.getAnswerOptions();
-				for (int j = 1; j < posAnswers.length; j++){
-					System.out.format("%d %s \n", j, posAnswers[j-1]);
+				Question current = exam.getQuestion(choice-1);
+				System.out.println(current.getQuestionDetail());
+				String[] AllAns = current.getAnswerOptions();
+			    for (int j = 0; j < AllAns.length; j++){
+					System.out.format("%d %s \n", j+1, AllAns[j]);
 				}
-				System.out.println("Please give answer number or 0 to leave blank:");
-				ans = Integer.parseInt(scan.next());
-				while (ans < 0 && ans >= posAnswers.length){
-					System.out.println("Please give a valid answer number or 0 to leave blank:");
-					ans = Integer.parseInt(scan.next());
+				System.out.println("Enter answer number: ");
+				answer = Integer.parseInt(scan.next());
+				while (answer < 0 || answer > AllAns.length){
+					System.out.println("Invalid Number, Try Again: ");
+					answer = Integer.parseInt(scan.next());
 				}
-				if (ans == 0){
+				if (answer == 0){
 					continue;
 				}
 				else{
-					exam.selectAnswer(choice-1, ans-1);
-					ind = openQs.indexOf(choice);
+					exam.selectAnswer(choice-1, answer-1);
+					ind = UnAnsweredQuestions.indexOf(choice);
 					if (ind != -1){
-						openQs.remove(ind);
+						UnAnsweredQuestions.remove(ind);
 					}
 				}
 			}
 			catch (Exception e) {
-            System.err.println("ClientApp exception:");
+			
+            System.err.println("Warning: Exception.");
             e.printStackTrace();
 			}
         }

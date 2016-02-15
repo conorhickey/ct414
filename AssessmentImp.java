@@ -1,4 +1,4 @@
-//AssesmentImp.java
+//AssessmentImp.java
 
 package ct414;
 
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 
-public class AssesmentImp implements Assessment{
+public class AssessmentImp implements Assessment{
 	private int stuID;
 	private String Info;
 	private Date CDate;
@@ -14,7 +14,7 @@ public class AssesmentImp implements Assessment{
 	private ArrayList<Integer> Answers;
 	private Integer QuestionHolder;
 	
-	public AssesmentImp(String info, Date ClosingDate, List<Question> QuestionsIn, int studentID){
+	public AssessmentImp(String info, Date ClosingDate, List<Question> QuestionsIn, int studentID){
 		super();
 		stuID = studentID;
 		Info = info;

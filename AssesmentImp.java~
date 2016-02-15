@@ -16,7 +16,7 @@ public class AssesmentImp implements Assessment{
 	
 	public AssesmentImp(String info, Date ClosingDate, List<Question> QuestionsIn, int studentID){
 		super();
-		stuID = studentid;
+		stuID = studentID;
 		Info = info;
 		CDate = ClosingDate;
 		Questions = QuestionsIn;
